@@ -503,7 +503,4 @@ You can follow same procedure in the official  AWS document [Getting started wit
    kubectl get services -o wide
    ```
 
-ose deployment regapp --port=8080 --type=LoadBalancer
-   kubectl get services -o wide
-   ```
 
