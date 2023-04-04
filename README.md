@@ -152,3 +152,358 @@ goto tomcat home directory and Add below users to conf/tomcat-users.xml file
    ```sh
    docker run -d --name test-tomcat-server -p 8090:8080 tomcat:latest
    ```
+
+# Installing Docker on Amazon Linux server
+
+### Pre-requisites
+1. Amazon Linux EC2 Instance
+
+## Installation Steps
+
+1. Install docker and start docker services
+   ```sh 
+   yum install docker -y
+   docker --version 
+   
+   # start docker services
+   service docker start
+   service docker status
+   ```
+1. Create a user called dockeradmin
+   ```sh
+   useradd dockeradmin
+   passwd dockeradmin
+   ```
+1. add a user to docker group to manage docker 
+   ```
+   usermod -aG docker dockeradmin
+   ```
+### Validation test
+1. Create a tomcat docker container by pulling a docker image from the public docker registry
+   ```sh
+   docker run -d --name test-tomcat-server -p 8090:8080 tomcat:latest
+   ```
+
+# Ansible Installation
+
+Ansible is an open-source automation platform. It is very, very simple to set up and yet powerful. Ansible can help you with configuration management, application deployment, task automation.
+
+### Pre-requisites
+
+1. An AWS EC2 instance (on Control node)
+
+### Installation steps:
+#### on Amazon EC2 instance
+
+1. Install python and python-pip
+   ```sh
+   yum install python
+   yum install python-pip
+   ```
+1. Install ansible using pip check for version
+    ```sh
+    pip install ansible
+   ansible --version
+   ```
+   
+1. Create a user called ansadmin (on Control node and Managed host)  
+   ```sh
+   useradd ansadmin
+   passwd ansadmin
+   ```
+1. Below command grant sudo access to ansadmin user. But we strongly recommended using "visudo" command if you are aware vi or nano editor.  (on Control node and Managed host)
+   
+1. Log in as a ansadmin user on master and generate ssh key (on Control node)
+   ```sh 
+   sudo su - ansadmin
+   ssh-keygen
+   ```
+1. Copy keys onto all ansible managed hosts (on Control node)
+   ```sh 
+   ssh-copy-id ansadmin@<target-server>
+   ```
+
+1. Ansible server used to create images and store on docker registry. Hence install docker, start docker services and add ansadmin to the docker group. 
+   ```sh
+   yum install docker
+   
+   # start docker services 
+   service docker start
+   service docker start 
+   
+   # add user to docker group 
+   usermod -aG docker ansadmin
+
+   ```
+1. Create a directory /etc/ansible and create an inventory file called "hosts" add control node and managed hosts IP addresses to it. 
+ 
+### Validation test
+
+   
+1. Run ansible command as ansadmin user it should be successful (Master)
+   ```sh 
+   ansible all -m ping
+   ```
+
+# Ansible integration with Jenkins
+
+### Prerequisites:
+1. Ansible server 
+2. Jenkins Server 
+
+### Part-01 Integration Setps
+
+Install "publish Over SSH"
+ - `Manage Jenkins` > `Manage Plugins` > `Available` > `Publish over SSH` 
+
+Enable connection between Ansible and Jenkins
+- `Manage Jenkins` > `Configure System` > `Publish Over SSH` > `SSH Servers` 
+
+	- SSH Servers:
+		- Hostname:`<ServerIP>`
+		- username: `ansadm`
+		- password: `*******`
+
+Test the connection "Test Connection"
+equisites:
+1. Ansible server 
+2. Jenkins Server 
+### Part-01 Integration Setps
+
+Install "publish Over SSH"
+ - `Manage Jenkins` > `Manage Plugins` > `Available` > `Publish over SSH` 
+
+Enable connection between Ansible and Jenkins
+- `Manage Jenkins` > `Configure System` > `Publish Over SSH` > `SSH Servers` 
+
+	- SSH Servers:
+		- Hostname:`<ServerIP>`
+		- username: `ansadm`
+		- password: `*******`
+
+Test the connection "Test Connection"
+
+# Configure Git pulgin on Jenkins
+Git is one of the most popular tools for version control system. you can pull code from git repositories using jenkins if you use github plugin. 
+
+
+#### Prerequisites
+1. Jenkins server 
+
+#### Install Git on Jenkins server
+1. Install git packages on jenkins server
+   ```sh
+   yum install git -y
+   ```
+
+#### Setup Git on jenkins console
+- Install git plugin without restart  
+  - `Manage Jenkins` > `Jenkins Plugins` > `available` > `github`
+
+- Configure git path
+  - `Manage Jenkins` > `Global Tool Configuration` > `git`
+
+  #  Install & configure Maven build tool on Jenkins
+Maven is a code build tool which used to convert your code to an artifact. this is a widely used plugin to build in continuous integration
+
+
+#### Prerequisites
+1. Jenkins server
+
+#### Install Maven on Jenkins
+1. Download maven packages https://maven.apache.org/download.cgi onto Jenkins server. In this case, I am using /opt/maven as my installation directory
+ - Link : https://maven.apache.org/download.cgi
+    ```sh
+     # Creating maven directory under /opt
+     mkdir /opt/maven
+     cd /opt/maven
+     # downloading maven version 3.6.0
+     wget http://mirrors.estointernet.in/apache/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+     tar -xvzf apache-maven-3.6.1-bin.tar.gz
+     ```
+	
+1. Setup M2_HOME and M2 paths in .bash_profile of the user and add these to the path variable
+   ```sh
+   vi ~/.bash_profile
+   M2_HOME=/opt/maven/apache-maven-3.6.1
+   M2=$M2_HOME/bin
+   PATH=<Existing_PATH>:$M2_HOME:$M2
+   ```
+#### Checkpoint 
+1. logoff and login to check maven version
+  
+    ```sh
+    mvn --version
+    ```
+So far we have completed the installation of maven software to support maven plugin on the jenkins console. Let's jump onto Jenkins to complete the remaining steps. 
+
+### Setup maven on Jenkins console
+1. Install maven plugin without restart  
+  - `Manage Jenkins` > `Jenkins Plugins` > `available` > `Maven Invoker`
+  - `Manage Jenkins` > `Jenkins Plugins` > `available` > `Maven Integration`
+
+2. Configure maven path
+  - `Manage Jenkins` > `Global Tool Configuration` > `Maven`
+
+# Setup Kubernetes on Amazon EKS
+
+You can follow same procedure in the official  AWS document [Getting started with Amazon EKS – eksctl](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html)   
+
+#### Pre-requisites: 
+  - an EC2 Instance 
+  - Install AWSCLI latest verison 
+
+1. Setup kubectl   
+   a. Download kubectl version 1.21  
+   b. Grant execution permissions to kubectl executable   
+   c. Move kubectl onto /usr/local/bin   
+   d. Test that your kubectl installation was successful    
+
+   ```sh 
+   curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/kubectl
+   chmod +x ./kubectl
+   mv ./kubectl /usr/local/bin 
+   kubectl version --short --client
+   ```
+2. Setup eksctl   
+   a. Download and extract the latest release   
+   b. Move the extracted binary to /usr/local/bin   
+   c. Test that your eksclt installation was successful   
+
+   ```sh
+   curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+   sudo mv /tmp/eksctl /usr/local/bin
+   eksctl version
+   ```
+  
+3. Create an IAM Role and attache it to EC2 instance    
+   `Note: create IAM user with programmatic access if your bootstrap system is outside of AWS`   
+   IAM user should have access to   
+   IAM   
+   EC2   
+   CloudFormation  
+   Note: Check eksctl documentaiton for [Minimum IAM policies](https://eksctl.io/usage/minimum-iam-policies/)
+   
+4. Create your cluster and nodes 
+   ```sh
+   eksctl create cluster --name cluster-name  \
+   --region region-name \
+   --node-type instance-type \
+   --nodes-min 2 \
+   --nodes-max 2 \ 
+   --zones <AZ-1>,<AZ-2>
+   
+   example:
+   eksctl create cluster --name project-cluster \
+      --region ap-south-1 \
+   --node-type t2.small \
+    ```
+
+5. To delete the EKS clsuter 
+   ```sh 
+   eksctl delete cluster valaxy --region ap-south-1
+   ```
+   
+6. Validate your cluster using by creating by checking nodes and by creating a pod 
+   ```sh 
+   kubectl get nodes
+   kubectl run tomcat --image=tomcat 
+   ```
+   
+   #### Deploying Nginx pods on Kubernetes
+1. Deploying Nginx Container
+    ```sh
+    kubectl create deployment  demo-nginx --image=nginx --replicas=2 --port=80
+    # kubectl deployment regapp --image=valaxy/regapp --replicas=2 --port=8080
+    kubectl get all
+    kubectl get pod
+   ```
+
+1. Expose the deployment as service. This will create an ELB in front of those 2 containers and allow us to publicly access them.
+   ```sh
+   kubectl expose deployment demo-nginx --port=80 --type=LoadBalancer
+   # kubectl exp# Setup Kubernetes on Amazon EKS
+
+You can follow same procedure in the official  AWS document [Getting started with Amazon EKS – eksctl](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html)   
+
+#### Pre-requisites: 
+  - an EC2 Instance 
+  - Install AWSCLI latest verison 
+
+1. Setup kubectl   
+   a. Download kubectl version 1.21  
+   b. Grant execution permissions to kubectl executable   
+   c. Move kubectl onto /usr/local/bin   
+   d. Test that your kubectl installation was successful    
+
+   ```sh 
+   curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/kubectl
+   chmod +x ./kubectl
+   mv ./kubectl /usr/local/bin 
+   kubectl version --short --client
+   ```
+2. Setup eksctl   
+   a. Download and extract the latest release   
+   b. Move the extracted binary to /usr/local/bin   
+   c. Test that your eksclt installation was successful   
+
+   ```sh
+   curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+   sudo mv /tmp/eksctl /usr/local/bin
+   eksctl version
+   ```
+  
+3. Create an IAM Role and attache it to EC2 instance    
+   `Note: create IAM user with programmatic access if your bootstrap system is outside of AWS`   
+   IAM user should have access to   
+   IAM   
+   EC2   
+   CloudFormation  
+   Note: Check eksctl documentaiton for [Minimum IAM policies](https://eksctl.io/usage/minimum-iam-policies/)
+   
+4. Create your cluster and nodes 
+   ```sh
+   eksctl create cluster --name cluster-name  \
+   --region region-name \
+   --node-type instance-type \
+   --nodes-min 2 \
+   --nodes-max 2 \ 
+   --zones <AZ-1>,<AZ-2>
+   
+   example:
+   eksctl create cluster --name vismay25-cluster \
+      --region ap-south-1 \
+   --node-type t2.micro \
+    ```
+
+5. To delete the EKS clsuter 
+   ```sh 
+   eksctl delete cluster valaxy --region ap-south-1
+   ```
+   
+6. Validate your cluster using by creating by checking nodes and by creating a pod 
+   ```sh 
+   kubectl get nodes
+   kubectl run tomcat --image=tomcat 
+   ```
+   
+   #### Deploying Nginx pods on Kubernetes
+1. Deploying Nginx Container
+    ```sh
+    kubectl create deployment  demo-nginx --image=nginx --replicas=2 --port=80
+    # kubectl deployment regapp --image=vismay25/regapp --replicas=2 --port=8080
+    kubectl get all
+    kubectl get pod
+   ```
+
+1. Expose the deployment as service. This will create an ELB in front of those 2 containers and allow us to publicly access them.
+   ```sh
+   kubectl expose deployment demo-nginx --port=80 --type=LoadBalancer
+   # kubectl expose deployment regapp --port=8080 --type=LoadBalancer
+   kubectl get services -o wide
+   ```
+
+ose deployment regapp --port=8080 --type=LoadBalancer
+   kubectl get services -o wide
+   ```
+
