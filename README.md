@@ -1,7 +1,10 @@
-# devops-project
+# AWS-DevOps-Project
 
 ## Source code for MAVEN web-app 
 https://github.com/vishu-25/hello-world-devops-src.git
+
+## Project Plan 
+![Project-plan](images/aws-ci-cd.png)
 
 ## Install Jenkins on EC2 instance 
 
